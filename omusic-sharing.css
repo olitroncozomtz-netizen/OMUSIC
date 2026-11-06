@@ -1,0 +1,7 @@
+.omusic-app .om-music-share-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:transparent;color:var(--om-muted,#9aaba3);border:1px solid #ffffff18;border-radius:20px;padding:9px 13px;font-size:11px;font-weight:650;flex-shrink:0;min-height:37px}
+.omusic-app .om-music-share-button:hover{color:var(--om-green,#1ed760);border-color:currentColor}
+.om-collection-toolbar>.om-music-share-button{margin-right:17px}
+.om-page-heading>.om-music-share-button{margin-top:18px}
+#om-share-song-option>svg{vertical-align:middle;margin-right:8px}
+html[data-theme="light"] .omusic-app .om-music-share-button{border-color:#244d3226;color:#52735f}
+@media(max-width:768px){.om-collection-toolbar>.om-music-share-button{padding:9px;width:37px;margin-right:9px;border:0}.om-collection-toolbar>.om-music-share-button>span{display:none}.om-page-heading>.om-music-share-button{min-height:40px;font-size:12px}}

@@ -1,0 +1,66 @@
+.om-vm-top,.om-vm-bottom,.om-vm-queue{display:none}
+.om-vm-queue[hidden]{display:none!important}
+#om-vm-pip[hidden]{display:none!important}
+@media(max-width:768px),(max-height:500px) and (pointer:coarse){
+  body.om-phone-video-open{overflow:hidden!important}
+  .omusic-app.om-phone-video-open :is(#mainPlayer,#mobile-tab-bar){visibility:hidden!important}
+  .omusic-app.om-phone-video-open #videoModal{display:grid!important;grid-template-rows:68px minmax(0,1fr) auto;gap:0;position:fixed!important;inset:0!important;width:100%!important;height:100vh!important;height:100dvh!important;max-height:none!important;background:#000!important;color:#fff!important;z-index:42000!important;padding:max(8px,env(safe-area-inset-top)) 24px max(18px,env(safe-area-inset-bottom))!important;box-sizing:border-box!important;overflow:hidden;border-radius:0;align-items:stretch!important;justify-content:stretch!important;animation:none!important;isolation:isolate}
+  .omusic-app.om-phone-video-open #videoModal>.video-topbar,.omusic-app.om-phone-video-open #mob-video-controls,.omusic-app.om-phone-video-open #fsControls{display:none!important}
+  .omusic-app.om-phone-video-open #videoPlayer{grid-row:2;grid-column:1;position:relative!important;inset:auto!important;align-self:center;justify-self:center;width:100%!important;height:100%!important;max-width:none!important;max-height:100%!important;min-height:0;object-fit:contain!important;border-radius:0!important;background:#000!important;touch-action:none}
+  .omusic-app #videoModal .om-vm-top{grid-row:1;grid-column:1;display:flex;align-items:center;gap:10px;min-width:0;touch-action:none;z-index:8}
+  .omusic-app #videoModal :is(.om-vm-top,.om-vm-bottom,.om-vm-queue) button{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff!important;border:0;background:transparent;font:inherit;padding:0;min-width:42px;min-height:42px;box-shadow:none}
+  .om-vm-top>button:first-child{transform:rotate(90deg);margin-left:-8px}
+  .om-vm-label{font-size:9px;font-weight:650;letter-spacing:1.2px;color:#aaa;flex:1;text-align:center}
+  .om-vm-avatars{display:flex;align-items:center;padding-left:0;min-width:35px}
+  .omusic-app #videoModal .om-vm-avatars>button{min-width:35px;min-height:35px;width:35px;height:35px;border-radius:50%;overflow:hidden;margin-right:-10px;border:2px solid #000}
+  .om-vm-avatars img{width:100%;height:100%;object-fit:cover}
+  .om-vm-avatars>span{background:#222;display:grid;place-items:center;height:33px;width:33px;border-radius:50%;font-size:10px}
+  .omusic-app #videoModal :is(#om-vm-fullscreen,#om-vm-pip){background:#ffffff0e;border-radius:50%}
+  .om-vm-bottom{grid-row:3;grid-column:1;display:block;padding-top:25px;z-index:3}
+  .om-vm-track{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:25px}
+  .om-vm-track>div{flex:1;min-width:0}
+  .omusic-app #videoModal .om-vm-track h1{font-size:22px;line-height:1.25;font-weight:750;color:#fff!important;letter-spacing:-.4px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #om-vm-artists{color:#ffffff75;font-size:13px;line-height:1.6;display:flex;flex-wrap:wrap;gap:0 3px}
+  .omusic-app #videoModal #om-vm-artists button{min-width:0;min-height:0;color:#ffffff75!important;display:inline;font-size:13px;white-space:normal;text-align:left}
+  .om-vm-progress{margin-bottom:25px}
+  .omusic-app #videoModal #om-vm-progress{appearance:none;-webkit-appearance:none;display:block;background:linear-gradient(to right,#fff var(--om-vm-progress,0%),#ffffff35 var(--om-vm-progress,0%))!important;width:100%;height:4px;border:0;border-radius:10px;margin:9px 0 14px;accent-color:#fff;cursor:pointer;touch-action:pan-x}
+  #om-vm-progress::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:8px;height:17px;border:0;border-radius:7px;background:#fff;margin-top:-6.5px;box-shadow:0 0 0 5px #000}
+  #om-vm-progress::-moz-range-thumb{width:8px;height:17px;border:0;border-radius:7px;background:#fff;box-shadow:0 0 0 5px #000}
+  #om-vm-progress::-webkit-slider-runnable-track{height:4px;background:transparent!important}
+  .om-vm-progress>div{display:flex;justify-content:space-between;color:#ffffff70;font-size:11px;font-variant-numeric:tabular-nums}
+  .om-vm-progress>div>span:nth-child(2){font-size:9px;letter-spacing:1px}
+  .om-vm-transport{display:flex;align-items:center;justify-content:space-between;gap:12px;height:54px;margin-bottom:26px}
+  .omusic-app #videoModal .om-vm-transport>button{width:45px;height:48px;border-radius:10px}
+  .omusic-app #videoModal .om-vm-transport>button:is(:first-child,:last-child){color:#ffffff75!important;min-width:39px;width:39px}
+  .omusic-app #videoModal .om-vm-transport>button[aria-pressed="true"]{background:#ffffff17;color:#fff!important}
+  .omusic-app #videoModal #om-vm-play{width:57px;height:57px}
+  .om-vm-footer{display:flex;align-items:center;gap:16px;min-height:48px}
+  .omusic-app #videoModal .om-vm-footer>button{background:#ffffff0c;border-radius:50%;height:46px;width:46px}
+  .om-vm-footer>div{min-width:0;flex:1}.om-vm-footer span{display:block;font-size:10px;line-height:1.7;color:#ffffff75}.om-vm-footer strong{display:block;font-size:12px;line-height:1.8;font-weight:550;color:#fff}
+  .om-vm-queue{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;background:#080a0b;color:#fff;padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom)}
+  .om-vm-queue>header{display:flex;align-items:center;gap:16px;min-height:80px}
+  .om-vm-queue>header>button{transform:rotate(180deg)}
+  .omusic-app #videoModal .om-vm-queue h2{font-size:17px;line-height:1.3;color:#fff;margin:0}
+  #om-vm-queue-content{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding-bottom:30px}
+  .omusic-app #videoModal .om-vm-queue h3{font-size:15px;color:#fff;margin:25px 0 17px}
+  .om-vm-queue p{font-size:12px;line-height:1.6;color:#aab1b5}
+  .om-vm-queue-row{display:flex;gap:6px;align-items:center;padding:8px 0}
+  .omusic-app #videoModal .om-vm-queue-row>button:first-child{gap:12px;flex:1;min-width:0;text-align:left;justify-content:flex-start}
+  .om-vm-queue-row img{width:76px;height:44px;object-fit:cover;border-radius:3px}
+  .om-vm-queue-row span{flex:1;min-width:0}.om-vm-queue-row strong{font-size:13px;line-height:1.5;color:#fff;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.om-vm-queue-row small{display:block;font-size:11px;color:#a1a8ac;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .omusic-app.om-phone-video-open :is(#optionsModal,#modalOverlay,#om-dialog-backdrop,#om-toast){z-index:50000!important}
+  .omusic-app.om-phone-video-open #optionsModal{left:16px!important;right:16px!important;top:auto!important;bottom:max(20px,env(safe-area-inset-bottom))!important;width:auto!important;max-height:65dvh;overflow-y:auto;transform:none!important;border-radius:14px!important}
+  .omusic-app.om-phone-video-open #videoModal.om-video-fullscreen{display:block!important;padding:0!important}
+  .omusic-app.om-phone-video-open #videoModal.om-video-fullscreen #videoPlayer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important}
+  .omusic-app.om-phone-video-open #videoModal.om-video-fullscreen .om-vm-top{position:absolute;top:max(8px,env(safe-area-inset-top));left:20px;right:20px;height:50px;background:transparent}
+  .omusic-app.om-phone-video-open #videoModal.om-video-fullscreen .om-vm-bottom{display:none}
+  .omusic-app.om-phone-video-open #videoModal.om-video-fullscreen #fsControls{display:block!important}
+  .omusic-app #videoModal button:focus-visible,.omusic-app #videoModal input:focus-visible{outline:2px solid #fff;outline-offset:4px}
+}
+@media(max-width:768px) and (max-height:700px){.omusic-app.om-phone-video-open #videoModal{grid-template-rows:52px minmax(0,1fr) auto;padding-bottom:12px!important}.om-vm-bottom{padding-top:16px}.om-vm-track,.om-vm-progress,.om-vm-transport{margin-bottom:17px}.om-vm-transport{height:46px}.om-vm-track h1{font-size:20px!important}.om-vm-footer{min-height:40px}}
+@media(orientation:landscape) and (max-height:500px) and (pointer:coarse){.omusic-app.om-phone-video-open #videoModal{display:block!important;padding:0!important}.omusic-app.om-phone-video-open #videoModal #videoPlayer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important}.omusic-app.om-phone-video-open #videoModal .om-vm-top{position:absolute;top:8px;left:16px;right:16px;height:44px}.omusic-app.om-phone-video-open #videoModal .om-vm-bottom{display:none}.omusic-app.om-phone-video-open #videoModal #fsControls{display:block!important}}
+
+/* Android PiP conserva solo la imagen del video. */
+.om-android-pip #videoModal{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;border:0!important;background:#000!important}
+.om-android-pip #videoPlayer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;object-fit:contain!important}
+.om-android-pip #videoModal :is(.video-topbar,#fsControls,.om-vm-top,.om-vm-bottom,#om-vm-queue){display:none!important}

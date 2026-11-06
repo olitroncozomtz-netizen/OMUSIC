@@ -1,0 +1,64 @@
+/* Cuenta y preferencias: superficies sobrias y controles accesibles en ambos temas. */
+.omusic-app{--om-settings-card:#101113;--om-settings-line:#ffffff0d;--om-settings-muted:#a9acb3;--om-settings-control:#24262b;--om-settings-text:#f4f5f6;--om-settings-border:#ffffff0b}
+.omusic-app[data-view="settings"] .main-content{background:#080a0b!important}
+.om-settings{max-width:960px;margin:0 auto;padding:42px 0 80px;color:var(--om-settings-text)}
+.om-settings-heading{margin-bottom:26px}
+.om-settings-heading h1{font-size:38px;letter-spacing:-1.5px;line-height:1.15;margin:10px 0 12px}
+.om-settings-heading p{font-size:13px;color:var(--om-settings-muted);margin:0}
+.om-settings-tabs{display:flex;gap:30px;border-bottom:1px solid var(--om-settings-line);margin:0 0 30px;overflow-x:auto}
+.omusic-app .om-settings-tabs button{flex-shrink:0;background:transparent;color:var(--om-settings-muted);padding:15px 1px 16px;border-radius:0;border-bottom:2px solid transparent;font-weight:650;font-size:13px}
+.omusic-app .om-settings-tabs button.active{color:var(--om-settings-text);border-bottom-color:var(--om-green,#1ed760)}
+.om-settings-section{margin:32px 0}
+.om-settings-section h2{font-size:16px;font-weight:750;margin:0 16px 17px;letter-spacing:-.35px}
+.om-settings-card{border:1px solid var(--om-settings-border);border-radius:17px;background:var(--om-settings-card);padding:0 17px;margin:15px 0;overflow:hidden}
+.omusic-app .om-setting-row{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:75px;padding:20px 0;width:100%;border:0;border-bottom:1px solid var(--om-settings-line);border-radius:0;background:transparent;text-align:left;color:var(--om-settings-text)}
+.om-setting-row:last-child{border-bottom:0}
+.om-setting-row>span:first-child{min-width:0;flex:1}
+.om-setting-row strong{display:block;font-size:13px;font-weight:700;line-height:1.45;letter-spacing:-.2px;overflow-wrap:anywhere}
+.om-setting-row small{display:block;font-size:12px;line-height:1.65;color:var(--om-settings-muted);margin-top:4px;overflow-wrap:anywhere}
+.omusic-app .om-setting-button{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;font-size:11px;font-weight:650;line-height:1.4;border-radius:5px;color:var(--om-settings-text);background:var(--om-settings-control);border:1px solid transparent}
+.omusic-app .om-setting-button:hover{filter:brightness(1.2);border-color:var(--om-settings-muted)}
+.omusic-app .om-setting-button:disabled{opacity:.45;cursor:not-allowed}
+.omusic-app .om-setting-switch{position:relative;flex:0 0 42px;width:42px;height:26px;padding:3px;border-radius:20px;border:0;background:#33353b;cursor:pointer}
+.om-setting-switch>span{display:block;width:20px;height:20px;border-radius:50%;background:#090b0c;transition:transform .15s}
+.omusic-app .om-setting-switch[aria-checked="true"]{background:#e8e9ed}
+.om-setting-switch[aria-checked="true"]>span{transform:translateX(16px)}
+.omusic-app .om-setting-link{cursor:pointer;min-height:74px}
+.omusic-app .om-setting-link:hover{background:var(--om-settings-line)}
+.om-setting-link>span:last-child,.om-setting-link>svg{flex-shrink:0;color:var(--om-settings-muted);font-size:23px;line-height:1}
+.om-setting-row select{flex:0 1 auto;width:auto;max-width:250px;min-width:165px;padding:10px 33px 10px 12px;border:1px solid var(--om-settings-border);border-radius:7px;background:var(--om-settings-control);color:var(--om-settings-text);font-family:inherit;font-size:12px;font-weight:600;line-height:1.5;cursor:pointer;color-scheme:dark}
+.om-setting-crossfade{padding:2px 0 22px;max-width:330px}
+.om-setting-crossfade.is-off{opacity:.4}
+.om-setting-crossfade label{display:flex;justify-content:space-between;font-size:11px;color:var(--om-settings-muted);margin:0 0 12px}
+.om-setting-crossfade output{font-variant-numeric:tabular-nums;color:var(--om-settings-text)}
+.omusic-app .om-setting-crossfade input{width:100%;height:4px;margin:0;accent-color:var(--om-green,#1ed760);cursor:pointer}
+.om-settings-identity{display:flex;align-items:center;gap:16px;border:1px solid var(--om-settings-border);padding:20px 17px;border-radius:17px;min-height:94px}
+.om-settings-identity>img,.om-settings-avatar{width:56px;height:56px;flex-shrink:0;object-fit:cover;border-radius:50%;background:#b8ccc3;color:#234f37;font-size:24px;display:grid;place-items:center}
+.om-settings-identity>strong{font-size:15px;flex:1;overflow-wrap:anywhere}
+.om-settings-note,.om-setting-empty{font-size:12px;line-height:1.8;color:var(--om-settings-muted)}
+.om-settings-note{margin:18px 4px}
+.om-setting-empty{padding:10px 0}
+.om-settings-info{margin-top:22px;max-height:65vh;overflow:auto;padding-right:3px}
+.om-settings-info p{margin:16px 0;line-height:1.8}
+.om-settings-info a{color:var(--om-green,#1ed760);font-size:12px;display:inline-block;line-height:1.7;text-decoration:underline;text-underline-offset:3px}
+.om-settings-info>.om-setting-button{margin:8px 8px 0 0}
+.om-settings-info .om-setting-row{gap:14px}
+.om-settings-block-search{margin:30px 0 14px}
+.om-settings-block-search label{display:block;font-size:13px;font-weight:650;margin-bottom:13px}
+.omusic-app .om-settings-block-search input{width:100%;max-width:460px;margin:0;padding:13px 15px;background:var(--om-settings-card);color:var(--om-settings-text);border:1px solid var(--om-settings-border);border-radius:8px;font-size:13px}
+.omusic-app .om-profile-menu button{display:flex;align-items:center;gap:9px;font-size:12px;min-height:43px}
+.om-profile-menu button>span:last-child{margin-left:auto;color:var(--om-settings-muted);font-size:22px}
+.omusic-app .om-profile-menu .om-settings-signout{color:#ff707a!important;border-top:1px solid var(--om-settings-line);border-radius:0;margin-top:4px}
+.omusic-app .om-content-unavailable .om-track-title{color:var(--om-settings-muted)!important;opacity:.45;cursor:not-allowed}
+.om-content-unavailable .om-track-cover{filter:grayscale(1);opacity:.4}
+.omusic-app .om-content-unavailable .om-track-number{opacity:.4;cursor:not-allowed}
+html[data-theme="light"] .omusic-app{--om-settings-card:#fff;--om-settings-line:#254d3210;--om-settings-muted:#5d7067;--om-settings-control:#e8f0eb;--om-settings-text:#19372a;--om-settings-border:#dce6df}
+html[data-theme="light"] .omusic-app[data-view="settings"] .main-content{background:#f7faf8!important}
+html[data-theme="light"] .omusic-app .om-setting-switch{background:#bbc8c0}
+html[data-theme="light"] .om-setting-switch>span{background:#fff;box-shadow:0 1px 3px #0002}
+html[data-theme="light"] .omusic-app .om-setting-switch[aria-checked="true"]{background:#237f4e}
+html[data-theme="light"] .om-setting-row select{color-scheme:light}
+html[data-theme="light"] .omusic-app .om-profile-menu .om-settings-signout{color:#bb3346!important}
+@media(max-width:768px){.om-settings{padding:25px 0 50px}.om-settings-heading h1{font-size:31px}.om-settings-tabs{gap:24px;margin-bottom:24px}.om-settings-section{margin:27px 0}.om-settings-section h2{margin-left:9px}.om-settings-card{padding:0 14px;border-radius:14px}.omusic-app .om-setting-row{gap:16px;padding:18px 0}.om-setting-row small{font-size:11px}.om-settings-identity{padding:16px 14px;gap:12px}.om-settings-identity>img,.om-settings-avatar{width:45px;height:45px}.om-setting-row select{max-width:180px;min-width:135px}.omusic-app .om-setting-button{padding:9px 11px;font-size:10px}}
+@media(max-width:400px){.om-setting-row:has(select){flex-wrap:wrap;gap:12px}.om-setting-row select{width:100%;max-width:none}.om-settings-tabs{gap:20px}.omusic-app .om-settings-tabs button{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.om-setting-switch>span{transition:none}}

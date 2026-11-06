@@ -1,0 +1,212 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owns(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function validProfile(uid) {
+      let p = request.resource.data;
+      return p.keys().hasAll(['ownerId', 'name', 'handle', 'handleKey', 'bio', 'website', 'photo', 'banner', 'isPublic', 'updatedAt'])
+        && p.keys().hasOnly(['ownerId', 'name', 'handle', 'handleKey', 'bio', 'website', 'photo', 'banner', 'isPublic', 'updatedAt'])
+        && p.ownerId == uid
+        && p.name is string && p.name.size() > 0 && p.name.size() <= 80
+        && p.handle is string && p.handle.matches('^[A-Za-z0-9_]{1,30}$')
+        && p.handleKey is string && p.handleKey == p.handle.lower()
+        && p.bio is string && p.bio.size() <= 160
+        && p.website is string && p.website.size() <= 500
+        && p.photo is string && p.photo.size() <= 200000
+        && p.banner is string && p.banner.size() <= 520000
+        && p.isPublic is bool && p.updatedAt is int;
+    }
+    // La clave minúscula es la reserva global. Perfil y reserva se escriben juntos.
+    function reservedHandle(uid) {
+      let h = getAfter(/databases/$(database)/documents/userHandles/$(request.resource.data.handleKey)).data;
+      return h.ownerId == uid && h.handle == request.resource.data.handle;
+    }
+    function profileVisibility(uid) {
+      let publicPath = /databases/$(database)/documents/publicProfiles/$(uid);
+      return request.resource.data.isPublic
+        ? getAfter(publicPath).data == request.resource.data
+        : !existsAfter(publicPath);
+    }
+    function releasedPreviousHandle() {
+      return !('handleKey' in resource.data)
+        || resource.data.handleKey == request.resource.data.handleKey
+        || !existsAfter(/databases/$(database)/documents/userHandles/$(resource.data.handleKey));
+    }
+    function handleMatchesProfile(handleKey) {
+      let h = request.resource.data;
+      let p = getAfter(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data;
+      return h.keys().hasAll(['ownerId','handle']) && h.keys().hasOnly(['ownerId','handle'])
+        && h.ownerId == request.auth.uid
+        && h.handle is string && h.handle.matches('^[A-Za-z0-9_]{1,30}$')
+        && handleKey == h.handle.lower() && p.handleKey == handleKey && p.handle == h.handle;
+    }
+    match /userHandles/{handleKey} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null && handleMatchesProfile(handleKey);
+      allow update: if owns(resource.data.ownerId)
+        && request.resource.data.ownerId == resource.data.ownerId && handleMatchesProfile(handleKey);
+      allow delete: if owns(resource.data.ownerId)
+        && (!existsAfter(/databases/$(database)/documents/userProfiles/$(request.auth.uid))
+          || getAfter(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data.handleKey != handleKey);
+    }
+    function validPublicPlaylist(uid) {
+      let p = request.resource.data;
+      return p.keys().hasAll(['ownerId', 'name', 'ownerName', 'ownerHandle', 'cover', 'trackUrls', 'updatedAt'])
+        && p.keys().hasOnly(['ownerId', 'name', 'ownerName', 'ownerHandle', 'cover', 'trackUrls', 'updatedAt'])
+        && p.ownerId == uid
+        && p.name is string && p.name.size() > 0 && p.name.size() <= 80
+        && p.ownerName is string && p.ownerName.size() <= 80
+        && p.ownerHandle is string && p.ownerHandle.size() <= 30
+        && p.cover is string && p.cover.size() <= 4096
+        && p.trackUrls is list && p.trackUrls.size() <= 1000
+        && p.updatedAt is int;
+    }
+    // La colección original de listas completas es privada por usuario.
+    match /playlists/{uid} {
+      allow read, delete: if owns(uid);
+      allow create, update: if owns(uid)
+        && request.resource.data.keys().hasOnly(['list'])
+        && request.resource.data.list is list;
+    }
+    match /userProfiles/{uid} {
+      allow read: if owns(uid);
+      allow create: if owns(uid) && validProfile(uid) && reservedHandle(uid) && profileVisibility(uid);
+      allow update: if owns(uid) && validProfile(uid) && reservedHandle(uid)
+        && releasedPreviousHandle() && profileVisibility(uid);
+      allow delete: if owns(uid)
+        && (!('handleKey' in resource.data)
+          || !existsAfter(/databases/$(database)/documents/userHandles/$(resource.data.handleKey)))
+        && !existsAfter(/databases/$(database)/documents/publicProfiles/$(uid));
+    }
+    // Aquí solo se escriben perfiles publicados expresamente por su dueño.
+    match /publicProfiles/{uid} {
+      allow read: if true;
+      allow create, update: if owns(uid) && validProfile(uid)
+        && request.resource.data.isPublic == true && reservedHandle(uid)
+        && getAfter(/databases/$(database)/documents/userProfiles/$(uid)).data == request.resource.data;
+      allow delete: if owns(uid) && (!existsAfter(/databases/$(database)/documents/userProfiles/$(uid))
+        || getAfter(/databases/$(database)/documents/userProfiles/$(uid)).data.isPublic == false);
+    }
+    // Hacer una lista privada o eliminarla borra su copia pública.
+    match /publicPlaylists/{uid}/items/{playlistId} {
+      allow read: if true;
+      allow create, update: if owns(uid) && validPublicPlaylist(uid);
+      allow delete: if owns(uid);
+    }
+    function signedIn() { return request.auth != null; }
+    function areFriends(a, b) {
+      let first = /databases/$(database)/documents/friendships/$(a + '~' + b);
+      let second = /databases/$(database)/documents/friendships/$(b + '~' + a);
+      return (exists(first) && get(first).data.status == 'accepted' && get(first).data.members.hasAll([a,b]))
+        || (exists(second) && get(second).data.status == 'accepted' && get(second).data.members.hasAll([a,b]));
+    }
+    function validFriendship(id) {
+      let f = request.resource.data;
+      return f.keys().hasAll(['from','to','members','status','createdAt','updatedAt'])
+        && f.keys().hasOnly(['from','to','members','status','createdAt','updatedAt'])
+        && f.from is string && f.to is string && f.from != f.to
+        && f.from.size() <= 128 && f.to.size() <= 128
+        && (id == f.from + '~' + f.to || id == f.to + '~' + f.from)
+        && f.members is list && f.members.size() == 2 && f.members.hasAll([f.from,f.to])
+        && f.status in ['pending','accepted'] && f.createdAt is timestamp && f.updatedAt == request.time;
+    }
+    match /friendships/{friendshipId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn() && validFriendship(friendshipId)
+        && request.resource.data.from == request.auth.uid && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/publicProfiles/$(request.auth.uid))
+        && exists(/databases/$(database)/documents/publicProfiles/$(request.resource.data.to));
+      allow update: if signedIn() && validFriendship(friendshipId)
+        && resource.data.to == request.auth.uid && resource.data.status == 'pending'
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']);
+      allow delete: if signedIn() && request.auth.uid in resource.data.members;
+    }
+    function invited(id, user) {
+      let invitation = /databases/$(database)/documents/partyInvites/$(user)/items/$(id);
+      return exists(invitation) && get(invitation).data.expiresAt > request.time;
+    }
+    function inParty(id) {
+      return signedIn() && request.auth.uid in get(/databases/$(database)/documents/parties/$(id)).data.memberIds;
+    }
+    function validParty() {
+      let p = request.resource.data;
+      return p.keys().hasAll(['hostId','name','status','memberIds','queue','index','trackUrl','playing','position','anchorMs','revision','updatedAt','heartbeatAt','expiresAt'])
+        && p.keys().hasOnly(['hostId','name','status','memberIds','queue','index','trackUrl','playing','position','anchorMs','revision','updatedAt','heartbeatAt','expiresAt'])
+        && p.hostId is string && p.name is string && p.name.size() > 0 && p.name.size() <= 60
+        && p.status in ['active','ended'] && p.memberIds is list && p.memberIds.size() > 0 && p.memberIds.size() <= 12
+        && p.hostId in p.memberIds && p.memberIds.toSet().size() == p.memberIds.size()
+        && p.queue is list && p.queue.size() <= 100 && p.index is int && p.index >= -1 && p.index < p.queue.size()
+        && p.trackUrl is string && p.trackUrl.size() <= 2000
+        && ((p.index == -1 && p.queue.size() == 0 && p.trackUrl == '') || (p.index >= 0 && p.trackUrl == p.queue[p.index]))
+        && p.playing is bool && (!p.playing || p.trackUrl != '')
+        && p.position is number && p.position >= 0 && p.position <= 86400
+        && p.anchorMs is number && p.anchorMs > 0 && p.anchorMs < 20000000000000
+        && p.revision is int && p.revision >= 0 && p.updatedAt == request.time
+        && p.heartbeatAt is timestamp && p.expiresAt is timestamp;
+    }
+    match /parties/{partyId} {
+      allow get: if signedIn() && (request.auth.uid in resource.data.memberIds || invited(partyId,request.auth.uid));
+      allow list: if false;
+      allow create: if signedIn() && partyId.matches('^[A-F0-9]{12}$') && validParty()
+        && request.resource.data.hostId == request.auth.uid && request.resource.data.memberIds == [request.auth.uid]
+        && request.resource.data.heartbeatAt == request.time && request.resource.data.status == 'active'
+        && request.resource.data.expiresAt > request.time && request.resource.data.expiresAt <= request.time + duration.value(24,'h');
+      allow update: if signedIn() && resource.data.status == 'active' && resource.data.expiresAt > request.time && validParty()
+        && request.resource.data.hostId == resource.data.hostId && request.resource.data.expiresAt == resource.data.expiresAt
+        && (
+          (request.auth.uid == resource.data.hostId && request.resource.data.heartbeatAt == request.time
+            && request.resource.data.revision == resource.data.revision + 1
+            && request.resource.data.memberIds.hasOnly(resource.data.memberIds))
+          || (request.auth.uid != resource.data.hostId
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds','updatedAt'])
+            && ((!(request.auth.uid in resource.data.memberIds) && invited(partyId,request.auth.uid)
+                 && request.resource.data.memberIds == resource.data.memberIds.concat([request.auth.uid]))
+              || (request.auth.uid in resource.data.memberIds
+                 && request.resource.data.memberIds == resource.data.memberIds.removeAll([request.auth.uid]))))
+          || (request.auth.uid in resource.data.memberIds && resource.data.queue.size() < 100
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['queue','index','trackUrl','revision','updatedAt'])
+            && request.resource.data.queue.size() == resource.data.queue.size() + 1
+            && request.resource.data.queue == resource.data.queue.concat([request.resource.data.queue[resource.data.queue.size()]])
+            && request.resource.data.queue[resource.data.queue.size()] is string
+            && request.resource.data.queue[resource.data.queue.size()].size() > 0
+            && request.resource.data.queue[resource.data.queue.size()].size() <= 2000
+            && request.resource.data.revision == resource.data.revision + 1
+            && ((resource.data.index == -1 && request.resource.data.index == 0)
+              || (resource.data.index >= 0 && request.resource.data.index == resource.data.index && request.resource.data.trackUrl == resource.data.trackUrl)))
+        );
+      allow delete: if signedIn() && resource.data.hostId == request.auth.uid;
+      match /presence/{userId} {
+        allow read: if inParty(partyId);
+        allow create, update: if owns(userId) && inParty(partyId)
+          && request.resource.data.keys().hasAll(['uid','ready','seenAt'])
+          && request.resource.data.keys().hasOnly(['uid','ready','seenAt'])
+          && request.resource.data.uid == userId && request.resource.data.ready is bool && request.resource.data.seenAt == request.time;
+        allow delete: if owns(userId);
+      }
+    }
+    match /partyInvites/{userId}/items/{partyId} {
+      allow read: if owns(userId) || (signedIn() && resource.data.from == request.auth.uid);
+      allow create, update: if signedIn()
+        && get(/databases/$(database)/documents/parties/$(partyId)).data.hostId == request.auth.uid
+        && get(/databases/$(database)/documents/parties/$(partyId)).data.status == 'active'
+        && areFriends(request.auth.uid,userId)
+        && request.resource.data.keys().hasAll(['from','to','partyId','name','createdAt','expiresAt'])
+        && request.resource.data.keys().hasOnly(['from','to','partyId','name','createdAt','expiresAt'])
+        && request.resource.data.from == request.auth.uid && request.resource.data.to == userId && request.resource.data.partyId == partyId
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.createdAt == request.time && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt == get(/databases/$(database)/documents/parties/$(partyId)).data.expiresAt;
+      allow delete: if owns(userId) || (signedIn() && resource.data.from == request.auth.uid);
+    }
+    // Reloj privado: sirve para estimar el desfase entre cada dispositivo y Firebase.
+    match /partyClocks/{userId} {
+      allow read, delete: if owns(userId);
+      allow create, update: if owns(userId) && request.resource.data.keys().hasOnly(['at']) && request.resource.data.at == request.time;
+    }
+  }
+}

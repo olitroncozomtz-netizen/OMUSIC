@@ -1,0 +1,9 @@
+{
+  "name": "omusic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OMUSIC para GitHub Pages",
+  "scripts": {
+    "test": "node --test *.test.cjs"
+  }
+}

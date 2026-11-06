@@ -1,0 +1,18 @@
+:root{--om-motion-ease:cubic-bezier(.2,.8,.2,1)}
+.omusic-app button,.omusic-app a{ -webkit-tap-highlight-color:transparent;touch-action:manipulation }
+.omusic-app :is(.om-media-card,.om-quick-item,.om-track-row,.om-friend-card,.om-setting-button,.om-toolbar-follow){transition:background-color .18s,color .18s,border-color .18s,box-shadow .2s}
+.omusic-app button{transition:background-color .18s,color .18s,opacity .18s,scale .18s var(--om-motion-ease)}
+.omusic-app button:active:not(:disabled){scale:.95}
+.omusic-app :is(.om-card-main,.om-quick-item):active{scale:.98}
+.omusic-app .om-card-main img{transition:transform .32s var(--om-motion-ease)}
+@media(hover:hover){.omusic-app .om-card-main:hover img{transform:scale(1.035)}}
+.omusic-app :is(.om-setting-switch>span,.om-theme-toggle>span){transition:transform .25s var(--om-motion-ease),background-color .2s}
+.om-artwork-flight{position:fixed;z-index:8;object-fit:cover;pointer-events:none;transform-origin:0 0;border-radius:3px;box-shadow:0 10px 26px #0003}
+.om-track-ghost{position:absolute;inset:0;height:100%;width:100%;object-fit:cover;z-index:2;pointer-events:none}
+#om-mobile-player[data-tab="cover"] .om-mp-stage,.om-mp-topbar{touch-action:none}
+#om-mobile-player[data-tab="lyrics"] .om-mp-stage{touch-action:pan-y}
+.omusic-app #mob-player-tap-zone{border:0;padding:0;min-height:0;color:transparent;box-shadow:none}
+.om-mp-stage,.om-vm-stage{overflow:hidden}
+.om-mp-art,.om-mp-art>img,.omusic-app #videoPlayer{user-select:none;-webkit-user-drag:none}
+.omusic-app .om-mp-lyrics-toggle,.omusic-app #om-mp-controls-toggle{transition:background .2s,color .2s,scale .2s}
+@media(prefers-reduced-motion:reduce){.omusic-app button,.omusic-app a,.omusic-app .om-card-main img,.omusic-app :is(.om-media-card,.om-quick-item,.om-track-row,.om-friend-card,.om-setting-button,.om-toolbar-follow,.om-setting-switch>span){transition:none!important;animation:none!important;scroll-behavior:auto!important}.omusic-app button:active:not(:disabled){scale:1}}

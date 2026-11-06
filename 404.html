@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Abrir enlace · OMUSIC</title>
+  <script>
+  (() => {
+    const path=location.pathname.match(/^(.*\/)user\/(?:@|%40)([A-Za-z0-9_]{1,30})\/?$/i);
+    const music=location.pathname.match(/^(.*\/)((?:artist|song|album|video)\/[a-z0-9][a-z0-9-]{0,319}(?:\/albums)?)\/?$/i)||location.pathname.match(/^(.*\/)(music|songs|artists|albums|videos)\/?$/i);
+    if(!path&&!music)return;
+    const target=new URL((path||music)[1],location.href);
+    target.searchParams.set(path?'om_profile':'om_route',(path||music)[2]);target.hash=location.hash;
+    location.replace(target.href);
+  })();
+  </script>
+</head>
+<body>
+  <h1>OMUSIC</h1>
+  <p>Abriendo OMUSIC… Si esta dirección no existe, vuelve al inicio.</p>
+  <noscript>Activa JavaScript para abrir los enlaces de OMUSIC.</noscript>
+</body>
+</html>

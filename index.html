@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script id="om-profile-routing">
+    /* Resolver la raíz antes de cargar recursos relativos en enlaces directos. */
+    (() => {
+      'use strict';
+      const pattern=/^(.*\/)user\/(?:@|%40)([A-Za-z0-9_]{1,30})\/?$/i;
+      const musicPattern=/^(.*\/)(artist|song|album|video)\/([a-z0-9][a-z0-9-]{0,319})(\/albums)?\/?$/i;
+      const catalogPattern=/^(.*\/)(music|songs|artists|albums|videos)\/?$/i;
+      function musicPath(value=window.location.href){
+        try{
+          const url=new URL(value,window.location.href),item=url.pathname.match(musicPattern);
+          if(item&&(!item[4]||item[2].toLowerCase()==='artist'))return {base:item[1],type:item[2].toLowerCase(),slug:item[3].toLowerCase(),albums:!!item[4]};
+          const catalog=url.pathname.match(catalogPattern);
+          return catalog?{base:catalog[1],type:catalog[2].toLowerCase()}:null;
+        }catch{return null;}
+      }
+      const valid=handle=>typeof handle==='string'&&/^[A-Za-z0-9_]{1,30}$/.test(handle);
+      function parse(value=window.location.href){
+        try{
+          const url=new URL(value,window.location.href),path=url.pathname.match(pattern);
+          if(path)return path[2];
+          const hash=url.hash.match(/^#\/?user\/@([A-Za-z0-9_]{1,30})\/?$/);
+          return hash?hash[1]:null;
+        }catch{return null;}
+      }
+      function base(value=window.OMAndroid?.publicBase||window.location.href){
+        const url=new URL(value,window.location.href),path=url.pathname.match(pattern);
+        if(path)url.pathname=path[1];
+        else if(musicPath(url.href))url.pathname=musicPath(url.href).base;
+        url.search='';url.hash='';url.username='';url.password='';return url;
+      }
+      function link(handle,value){
+        if(!valid(handle))throw Error('Nombre de usuario inválido.');
+        const url=new URL('.',base(value));url.pathname+='user/@'+handle;return url.href;
+      }
+      const url=new URL(window.location.href),path=url.pathname.match(pattern);
+      const music=musicPath(url.href);
+      const root=path?new URL(path[1],url):music?new URL(music.base,url):new URL('.',url);
+      const tag=document.createElement('base');tag.href=root.href;document.head.prepend(tag);
+      // La página 404 de GitHub Pages vuelve al inicio con este parámetro temporal.
+      const forwarded=url.searchParams.get('om_profile');
+      if(valid(forwarded)){
+        url.pathname=root.pathname+'user/@'+forwarded;url.searchParams.delete('om_profile');
+        window.history.replaceState(null,'',url.href);
+      }
+      const forwardedMusic=url.searchParams.get('om_route');
+      if(typeof forwardedMusic==='string'&&/^(?:(?:artist|song|album|video)\/[a-z0-9][a-z0-9-]{0,319}(?:\/albums)?|music|songs|artists|albums|videos)$/i.test(forwardedMusic)){
+        const target=new URL(forwardedMusic,root);
+        if(musicPath(target.href)){url.pathname=target.pathname;url.searchParams.delete('om_route');window.history.replaceState(null,'',url.href);}
+      }
+      window.OMProfileRoutes={parse,base,link,valid};
+      window.OMContentPaths={parse:musicPath};
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>OMUSIC — Tu música, a tu manera</title>
+<meta name="description" content="Tu biblioteca de OMUSIC: canciones, álbumes, videos, playlists y letras en un solo lugar.">
+<meta name="theme-color" content="#121212">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="omusicicon.png">
+
+    <script src="omusic-theme.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="omusic-android.js"></script>
+    <script src="auth-original.js"></script>
+    <link rel="stylesheet" href="ESTILO.css">
+    <script src="videos.js"></script>
+<link rel="stylesheet" href="omusic-redesign.css">
+<link rel="stylesheet" href="omusic-fusion.css">
+<link rel="stylesheet" href="omusic-theme.css">
+<link rel="stylesheet" href="omusic-settings.css">
+<link rel="stylesheet" href="omusic-friends.css">
+<link rel="stylesheet" href="omusic-mobile-player.css">
+<link rel="stylesheet" href="omusic-sharing.css">
+<link rel="stylesheet" href="omusic-motion.css">
+<link rel="stylesheet" href="omusic-mobile-video.css">
+<link rel="stylesheet" href="omusic-appearance.css">
+<link rel="stylesheet" href="omusic-mobile-lyrics.css">
+<link rel="stylesheet" href="omusic-desktop.css">
+</head>
+
+<body class="omusic-app om-no-media" data-view="home">
+
+<div id="login-overlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Iniciar sesión en OMUSIC">
+<button class="om-auth-close" onclick="omCloseAuth()" aria-label="Cerrar">×</button>
+    <div class="login-card">
+        <h2 id="auth-title">OMUSIC 🎧</h2>
+        <p class="auth-subtitle">Inicia sesión para continuar</p>
+
+        <!-- Botón Google -->
+        <button id="btn-google" onclick="loginGoogle()" class="auth-btn-google-v2" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.35)'"
+           onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.25)'">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="icon-18">
+            <span class="om-google-label">Continuar con Google</span>
+        </button>
+
+        <!-- Botón GitHub -->
+        <button id="btn-github" onclick="loginGitHub()" class="auth-btn-github-v2" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.5)'"
+           onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.35)'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.37.6.1.82-.26.82-.57v-2c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 013.01-.4c1.02.005 2.05.14 3.01.4 2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.21.69.82.57C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            Continuar con GitHub
+        </button>
+
+        <p id="authError" class="auth-error" role="status" aria-live="polite"></p>
+
+        <!-- Divisor -->
+        <div class="auth-divider-row">
+            <div class="divider-line"></div>
+            <span class="divider-text">o bien</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <!-- Botón Invitado -->
+        <button id="btn-guest" onclick="loginGuest()" class="auth-btn-guest-v2" onmouseover="this.style.borderColor='#555';this.style.color='#bbb'"
+           onmouseout="this.style.borderColor='#333';this.style.color='#888'">
+            👤 Modo offline (invitado)
+        </button>
+        <p class="guest-note">Las playlists de invitado no se sincronizan entre dispositivos</p>
+
+        <p class="auth-footer-text">
+            Al continuar, aceptas el uso de tu cuenta para identificarte en OMUSIC.
+        </p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="logo">OMUSIC 🎧</div>
+        
+        <div class="profile-section">
+            <div class="profile-info">
+                <input type="file" id="uploadPic" class="hidden-input" accept="image/*" onchange="saveProfilePic(this)">
+
+                <img id="userPic" class="profile-pic" src="https://via.placeholder.com/40" onclick="document.getElementById('uploadPic').click()">
+
+                <span id="displayUsername" class="username-text">Usuario</span>
+            </div>
+            <button class="btn-logout-small" onclick="logout()">Salir</button>
+        </div>
+        <nav class="sidebar-nav">
+            <button id="nav-btn-musica" onclick="openMusicaView()" class="sidebar-nav-btn sidebar-nav-btn--active">
+                <span class="sidebar-nav-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </span>
+                <span class="sidebar-nav-label">Música</span>
+            </button>
+            <button id="nav-btn-explorar" onclick="openExplorarView()" class="sidebar-nav-btn">
+                <span class="sidebar-nav-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </span>
+                <span class="sidebar-nav-label">Explorar</span>
+            </button>
+            <button id="nav-btn-coleccion" onclick="openPlaylists()" class="sidebar-nav-btn">
+                <span class="sidebar-nav-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </span>
+                <span class="sidebar-nav-label">Colección</span>
+            </button>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 id="top-bar-title">Música</h1>
+            <button id="lyrios-topbar-btn" onclick="window.lyriosOpenOverlay && window.lyriosOpenOverlay()" class="lyrios-topbar-btn-style" onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 28px rgba(138,92,246,0.55)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(109,40,217,0.4)'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                LYRIOS
+            </button>
+            <input type="text" id="search" placeholder="Buscar">
+        </div>
+
+        <!-- ===== LYRIOS AI DJ OVERLAY (fullscreen) ===== -->
+        <div id="lyrios-overlay" class="lyrios-overlay-style">
+            <!-- Fondo con gradiente animado -->
+            <div id="lyrios-overlay-bg" class="lyrios-bg-style"></div>
+
+            <!-- Botón cerrar -->
+            <button onclick="window.lyriosCloseOverlay && window.lyriosCloseOverlay()" class="lyrios-close-btn-style" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&#8964;</button>
+
+            <!-- Título LYRIOS -->
+            <div class="lyrios-header-style">
+                <h1 id="lyrios-overlay-title" class="lyrios-title-style">LYRIOS</h1>
+            </div>
+
+            <!-- Visualizador circular -->
+            <div class="lyrios-canvas-container">
+                <canvas id="lyrios-circular-canvas" width="420" height="420" class="lyrios-canvas-style"></canvas>
+                <!-- Chat de mensajes encima del canvas -->
+                <div id="lyrios-overlay-chat" class="lyrios-chat-style"></div>
+            </div>
+
+            <!-- Área de input inferior -->
+            <div class="lyrios-footer-style">
+                <!-- Chips -->
+                <div class="lyrios-chips-row">
+                    <button class="lyrios-ov-chip" onclick="window._lyrios_cmd && window._lyrios_cmd('Recomiéndame algo')">🎵 Recomiéndame</button>
+                    <button class="lyrios-ov-chip" onclick="window._lyrios_cmd && window._lyrios_cmd('¿Qué está sonando?')">🔍 ¿Qué suena?</button>
+                    <button class="lyrios-ov-chip" onclick="window._lyrios_cmd && window._lyrios_cmd('Siguiente canción')">⏭ Siguiente</button>
+                </div>
+                <!-- Row input -->
+                <div class="lyrios-input-row">
+                    <input id="lyrios-overlay-input" type="text" placeholder="Escríbeme algo..." autocomplete="off" class="lyrios-input-style" onkeydown="if(event.key==='Enter')window.lyriosSendOverlay&&window.lyriosSendOverlay()">
+                    <button onclick="window.lyriosSendOverlay && window.lyriosSendOverlay()" class="lyrios-action-btn" onmouseover="this.style.background='rgba(124,58,237,0.8)'" onmouseout="this.style.background='rgba(109,40,217,0.6)'">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                    <button id="lyrios-overlay-mic" onclick="window.lyriosToggleMic && window.lyriosToggleMic()" class="lyrios-action-btn" onmouseover="this.style.background='rgba(124,58,237,0.8)'" onmouseout="this.style.background='rgba(109,40,217,0.6)'">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="artist-section" id="artistSection">
+            <h3>Artistas</h3>
+            <div class="artist-scroll" id="artistList">
+
+                <div class="artist-item" onclick="openArtistProfile('Bad Bunny')"
+                     data-artist-name="Bad Bunny"
+                     data-artist-photo="https://yt3.googleusercontent.com/Ys37SrZ6B7RUW8_X3YvQet7VCFNnWa5C5PXe09OgIoY9UkTt1GpP_zap1-w2VF5gZcyS5xQmbJs=s3840-c-k-c0x00ffffff-no-rj">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://yt3.googleusercontent.com/Ys37SrZ6B7RUW8_X3YvQet7VCFNnWa5C5PXe09OgIoY9UkTt1GpP_zap1-w2VF5gZcyS5xQmbJs=s3840-c-k-c0x00ffffff-no-rj" alt="Bad Bunny">
+                    </div>
+                    <p>Bad Bunny</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Tito Doble P')"
+                     data-artist-name="Tito Doble P"
+                     data-artist-photo="https://resources.tidal.com/images/86a55c8e/285e/4de0/aeea/61ceb4aede6a/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/86a55c8e/285e/4de0/aeea/61ceb4aede6a/750x750.jpg" alt="Tito Doble P">
+                    </div>
+                    <p>Tito Doble P</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Milo j')"
+                     data-artist-name="Milo j"
+                     data-artist-photo="https://resources.tidal.com/images/70915e4c/c1af/4b6b/adc2/3cbd5d70fdbe/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://yt3.googleusercontent.com/8dme4hLPTr6vgwJg6JQzgsh1VeaHM4AlAv2WPxqS1VxD7t6lpghIrOrn6ACu74H1v2Grvqt5yw=s3840-c-k-c0x00ffffff-no-rj" alt="Milo j">
+                    </div>
+                    <p>Milo j</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Luis Miguel')"
+                     data-artist-name="Luis Miguel"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5eb6481401e529e475116702a29">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5eb6481401e529e475116702a29" alt="Luis Miguel">
+                    </div>
+                    <p>Luis Miguel</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Junior H')"
+                     data-artist-name="Junior H"
+                     data-artist-photo="https://i.scdn.co/image/ab676161000051745fbe9b7dc7d9a2295bd6022c">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab676161000051745fbe9b7dc7d9a2295bd6022c" alt="Junior H">
+                    </div>
+                    <p>Junior H</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Nsqk')"
+                     data-artist-name="Nsqk"
+                     data-artist-photo="https://resources.tidal.com/images/4e04ff1e/1b8a/4c90/91de/04a04d826623/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/4e04ff1e/1b8a/4c90/91de/04a04d826623/750x750.jpg" alt="NSQK">
+                    </div>
+                    <p>NSQK</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Alvaro')"
+                     data-artist-name="Alvaro"
+                     data-artist-photo="https://yt3.googleusercontent.com/LTv839HyxS-2CkNE6rjGJWjIgEAVeMcU2q019hbEwoRcXrhy7uok5I9m1rwF6wIgoHWKkSui1g=s3840-c-k-c0x00ffffff-no-rj">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://yt3.googleusercontent.com/LTv839HyxS-2CkNE6rjGJWjIgEAVeMcU2q019hbEwoRcXrhy7uok5I9m1rwF6wIgoHWKkSui1g=s3840-c-k-c0x00ffffff-no-rj" alt="Alvaro Díaz">
+                    </div>
+                    <p>Alvaro Díaz</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Myke Towers')"
+                     data-artist-name="Myke Towers"
+                     data-artist-photo="https://i.scdn.co/image/ab676161000051748372345609bebaf1e948ef7f">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab676161000051748372345609bebaf1e948ef7f" alt="Myke Towers">
+                    </div>
+                    <p>Myke Towers</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Feid')"
+                     data-artist-name="Feid"
+                     data-artist-photo="https://resources.tidal.com/images/92506293/234d/407b/93f2/37e23798c7fe/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/92506293/234d/407b/93f2/37e23798c7fe/750x750.jpg" alt="Feid">
+                    </div>
+                    <p>Feid</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Rauw Alejandro')"
+                     data-artist-name="Rauw Alejandro"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000517443ea45ccf08451d2511d33fa">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000517443ea45ccf08451d2511d33fa" alt="Rauw Alejandro">
+                    </div>
+                    <p>Rauw Alejandro</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Fuerza Regida')"
+                     data-artist-name="Fuerza Regida"
+                     data-artist-photo="https://resources.tidal.com/images/739058c9/bb79/40b9/a4d9/5414046c5f99/1280x1280.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/739058c9/bb79/40b9/a4d9/5414046c5f99/1280x1280.jpg" alt="Fuerza Regida">
+                    </div>
+                    <p>Fuerza Regida</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Peso Pluma')"
+                     data-artist-name="Peso Pluma"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5ebe5283f5b671cf618b82a2696">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5ebe5283f5b671cf618b82a2696" alt="Peso Pluma">
+                    </div>
+                    <p>Peso Pluma</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Bizarrap')"
+                     data-artist-name="Bizarrap"
+                     data-artist-photo="https://resources.tidal.com/images/16964161/881a/41f3/b801/0024b07aca65/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/16964161/881a/41f3/b801/0024b07aca65/750x750.jpg" alt="Bizarrap">
+                    </div>
+                    <p>Bizarrap</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Duki')"
+                     data-artist-name="Duki"
+                     data-artist-photo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThMr190r9weoU0Oj9QgYh3CNW01de7bGqjCA&s">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThMr190r9weoU0Oj9QgYh3CNW01de7bGqjCA&s" alt="Duki">
+                    </div>
+                    <p>Duki</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Trueno')"
+                     data-artist-name="Trueno"
+                     data-artist-photo="https://i.scdn.co/image/ab676161000051742315882f47bbd20b3b808232">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab676161000051742315882f47bbd20b3b808232" alt="Trueno">
+                    </div>
+                    <p>Trueno</p>
+                </div>
+            
+                <div class="artist-item" onclick="openArtistProfile('Young Cister')"
+                     data-artist-name="Young Cister"
+                     data-artist-photo="https://i.scdn.co/image/ab67616100005174e03be823164764f4673a2fc8">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab67616100005174e03be823164764f4673a2fc8" alt="Young Cister">
+                    </div>
+                    <p>Young Cister</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Danny Ocean')"
+                     data-artist-name="Danny Ocean"
+                     data-artist-photo="https://resources.tidal.com/images/4581682d/43e6/4724/9aed/d7c950b59f8c/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/4581682d/43e6/4724/9aed/d7c950b59f8c/750x750.jpg" alt="Danny Ocean">
+                    </div>
+                    <p>Danny Ocean</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Easykid')"
+                     data-artist-name="Easykid"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5ebe96caa2b41ca0e217ebf802a">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5ebe96caa2b41ca0e217ebf802a" alt="Easykid">
+                    </div>
+                    <p>Easykid</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Latin Mafia')"
+                     data-artist-name="Latin Mafia"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5eb8abe977d17e650d4fa2ec093">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5eb8abe977d17e650d4fa2ec093" alt="Latin Mafia">
+                    </div>
+                    <p>Latin Mafia</p>
+                </div>
+                <div class="artist-item" onclick="openArtistProfile('bbno$')"
+                     data-artist-name="bbno$"
+                     data-artist-photo="https://i.scdn.co/image/ab67616100005174e7c585e9ecd65c76b7bf91ac">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab67616100005174e7c585e9ecd65c76b7bf91ac" alt="bbno$">
+                    </div>
+                    <p>bbno$</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Tainy')"
+                     data-artist-name="Tainy"
+                     data-artist-photo="https://i.scdn.co/image/ab67616100005174a0d42a558309507a6a3b3311">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab67616100005174a0d42a558309507a6a3b3311" alt="Tainy">
+                    </div>
+                    <p>Tainy</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('J Balvin')"
+                     data-artist-name="J Balvin"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5eb0405b03342c2e56751b9923d">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5eb0405b03342c2e56751b9923d" alt="J Balvin">
+                    </div>
+                    <p>J Balvin</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Morat')"
+                     data-artist-name="Morat"
+                     data-artist-photo="https://festivalesmexico.com/wp-content/uploads/2023/05/historia-biografia-de-morat.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://festivalesmexico.com/wp-content/uploads/2023/05/historia-biografia-de-morat.jpg" alt="Morat">
+                    </div>
+                    <p>Morat</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Bhavi')"
+                     data-artist-name="Bhavi"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5eb502c516ea88457406db38fac">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5eb502c516ea88457406db38fac" alt="Bhavi">
+                    </div>
+                    <p>Bhavi</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Quevedo')"
+                     data-artist-name="Quevedo"
+                     data-artist-photo="https://resources.tidal.com/images/50ed422b/00ff/4911/9699/521dc3c3fdda/480x480.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/50ed422b/00ff/4911/9699/521dc3c3fdda/480x480.jpg" alt="Quevedo">
+                    </div>
+                    <p>Quevedo</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('d4vd')"
+                     data-artist-name="d4vd"
+                     data-artist-photo="https://resources.tidal.com/images/1ca7bfaf/ddd1/4563/8aa1/5ab8eee71558/1280x1280.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/1ca7bfaf/ddd1/4563/8aa1/5ab8eee71558/1280x1280.jpg" alt="d4vd">
+                    </div>
+                    <p>d4vd</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Esperón')"
+                     data-artist-name="Esperón"
+                     data-artist-photo="https://i.scdn.co/image/ab676161000051742230abc8c0c61c939ba33000">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab676161000051742230abc8c0c61c939ba33000" alt="Esperón">
+                    </div>
+                    <p>Esperón</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Metallica')"
+                     data-artist-name="Metallica"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44" alt="Metallica">
+                    </div>
+                    <p>Metallica</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Munic HB')"
+                     data-artist-name="Munic HB"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5eb4f56e702ff03b3679778fb2b">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/0c0928e0/1652/44b9/a7f1/0b399cafbd0a/320x320.jpg" alt="Munic HB">
+                    </div>
+                    <p>Munic HB</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Daddy Yankee')"
+                     data-artist-name="Daddy Yankee"
+                     data-artist-photo="https://i.scdn.co/image/ab676161000051749a6918fd0b2fd675d63c675d">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab676161000051749a6918fd0b2fd675d63c675d" alt="Daddy Yankee">
+                    </div>
+                    <p>Daddy Yankee</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Omar Courtz')"
+                     data-artist-name="Omar Courtz"
+                     data-artist-photo="https://i.scdn.co/image/ab6761610000e5ebd317f301a85fd77964d94b4d">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://i.scdn.co/image/ab6761610000e5ebd317f301a85fd77964d94b4d" alt="Omar Courtz">
+                    </div>
+                    <p>Omar Courtz</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Kali Uchis')"
+                     data-artist-name="Kali Uchis"
+                     data-artist-photo="https://resources.tidal.com/images/484022d5/3e73/44b4/a55d/b5e46e44d271/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/484022d5/3e73/44b4/a55d/b5e46e44d271/750x750.jpg" alt="Kali Uchis">
+                    </div>
+                    <p>Kali Uchis</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Eslabon Armado')"
+                     data-artist-name="Eslabon Armado"
+                     data-artist-photo="https://resources.tidal.com/images/b5443f3a/c71e/41b8/90c6/d0bc1880b203/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/b5443f3a/c71e/41b8/90c6/d0bc1880b203/750x750.jpg" alt="Eslabon Armado">
+                    </div>
+                    <p>Eslabon Armado</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Nina')"
+                     data-artist-name="Nina"
+                     data-artist-photo="https://yt3.googleusercontent.com/jr2FwpFMQsjBYH3uauEgBwugfKefH3pOqu4u3Hnci04osVlcuuykdQpZNyD5Brw-U7FADymp=s3840-c-k-c0x00ffffff-no-rj">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://yt3.googleusercontent.com/jr2FwpFMQsjBYH3uauEgBwugfKefH3pOqu4u3Hnci04osVlcuuykdQpZNyD5Brw-U7FADymp=s3840-c-k-c0x00ffffff-no-rj" alt="Nina">
+                    </div>
+                    <p>Nina</p>
+                </div>
+
+                <div class="artist-item" onclick="openArtistProfile('Jhayco')"
+                     data-artist-name="Jhayco"
+                     data-artist-photo="https://resources.tidal.com/images/36beb7f5/fcae/4d6d/a7d1/ef7d013c7ada/750x750.jpg">
+                    <div class="artist-avatar-wrap">
+                        <img src="https://resources.tidal.com/images/36beb7f5/fcae/4d6d/a7d1/ef7d013c7ada/750x750.jpg" alt="">
+                    </div>
+                    <p>Jhayco</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="artist-section suggested-section-top" id="suggestedSection">
+            <h3>Música Que Te Pueda Interesar</h3>
+            <div id="suggestedList" class="suggested-list"></div>
+        </div>
+
+        <div class="album-section" id="recommendedAlbumsSection">
+            <h3>Álbumes que te encantarán</h3>
+            <div id="recommendedAlbumsList" class="album-scroll"></div>
+        </div>
+
+        <div class="album-section" id="albumSection">
+            <h3>Álbumes</h3>
+            <div id="albumList" class="album-scroll"></div>
+        </div>
+        
+        <!-- ===== SECCIÓN VIDEOS EN EXPLORAR ===== -->
+        <div class="artist-section" id="explorarVideosSection" class="hidden">
+            <h3>Videos Musicales</h3>
+            <div id="explorarVideoList" class="song-grid"></div>
+        </div>
+
+        <div class="song-header-flex">
+            <h2 id="viewTitle">Todas las canciones</h2>
+        </div>
+        
+        <div id="songList" class="song-grid"></div>
+    </div>
+</div>
+
+<audio id="audio"></audio>
+<div class="player" id="mainPlayer" style="display:none;">
+    <!-- Zona tapable en móvil para abrir el reproductor completo -->
+    <button type="button" id="mob-player-tap-zone" onclick="openMobPlayerModal()" class="mob-tap-zone" aria-label="Abrir reproductor"></button>
+    
+    <div class="player-left">
+        <div id="cover-container" class="cover-mini-container" onclick="if(activeVideo) restoreVideo();">
+            <img id="cover" class="cover-mini" src="" alt="">
+            <video id="miniVideoEl" class="cover-mini mini-video-hidden" muted playsinline></video>
+        </div>
+        <div class="track-info">
+            <h2 id="title">Selecciona una canción</h2>
+            <p id="artist"></p>
+        </div>
+        <button class="icon-btn">♡</button> 
+    </div>
+
+    <div class="player-center">
+        <div class="playback-controls">
+            <button class="ctrl-mode-btn" id="btn-shuffle" onclick="toggleShuffle()" title="Aleatorio">
+                <img src="cambio.png" class="icon-mode-img" alt="Aleatorio">
+            </button>
+            <button class="control-btn" onclick="prevSong()"><img src="original-82aaef539fec.png" alt="Anterior" class="icon-20"></button>
+            <button id="playBtn" class="play-main" onclick="playPause()"><img src="original-b766c1b498d1.png" alt="Play" class="icon-22"></button>
+            <button class="control-btn" onclick="playNext()"><img src="original-32abb8088b81.png" alt="Siguiente" class="icon-20"></button>
+            <button class="ctrl-mode-btn" id="btn-repeat" onclick="toggleRepeat()" title="Repetir">
+                <img src="repetir.png" class="icon-mode-img" alt="Repetir">
+            </button>
+        </div>
+        
+        <div class="progress-container">
+            <span id="current" class="time">0:00</span>
+            <progress id="progress" value="0" max="100"></progress>
+            <span id="duration" class="time">0:00</span>
+        </div>
+
+    </div>
+
+    <div class="player-right">
+        <button class="icon-btn secondary btn-letras" onclick="toggleLyricsView()">Letras</button>
+        <button class="icon-btn" onclick="toggleQueue()">≣</button>
+        <div class="volume-bar">
+            <span>🔈</span>
+            <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+        </div>
+    </div>
+
+</div>
+
+<div class="queue" id="queueBox">
+    <div class="queue-header">
+        <h3>Fila</h3>
+        <button onclick="toggleQueue()" class="queue-close-btn">×</button>
+    </div>
+    <div id="queueList"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeOptions()"></div>
+<div class="options-modal" id="optionsModal">
+    <h4 id="modalSongTitle">Opciones</h4>
+    <button onclick="executeAction('queue')">Agregar a la fila</button>
+    <div id="playlistOptions"></div>
+    <button onclick="closeOptions()" class="btn-cancel">Cancelar</button>
+</div>
+
+<div id="lyrics-overlay">
+    <img id="lyrics-bg" class="lyrics-background-blur" src="" alt=""> <button class="close-lyrics" onclick="toggleLyricsView()">✕</button>
+    
+    <div class="lyrics-left">
+        <div class="lyrics-cover-wrap" id="lyrics-cover-wrap">
+            <img id="lyrics-cover-big" class="lyrics-cover-big" src="" alt="Portada">
+            <video id="lyrics-cover-video" class="lyrics-cover-video-hidden" autoplay loop muted playsinline></video>
+        </div>
+        <div class="lyrics-song-meta">
+            <div id="lyrics-meta-title" class="lyrics-meta-title"></div>
+            <div id="lyrics-meta-artist" class="lyrics-meta-artist"></div>
+        </div>
+    </div>
+    
+    <div class="lyrics-right" id="lyrics-scroll-container">
+        <div id="lyrics-container"></div>
+    </div>
+</div>
+
+<script src="canciones.js"></script>
+<script src="omusic-ai-dj.js"></script>
+
+<script src="player-original.js"></script>
+
+<!-- =====================================================
+     MOBILE FULL PLAYER MODAL — Solo visible en móvil al tocar la barra del reproductor
+     ===================================================== -->
+
+
+<div id="mob-player-modal">
+    <!-- Fondo difuminado con la portada -->
+    <div id="mob-player-bg"></div>
+    <div class="mob-modal-overlay"></div>
+
+    <!-- Menú de 3 puntos (oculto por defecto) -->
+    <div id="mob-dots-menu">
+        <button onclick="mobMenuAddToQueue()">➕&nbsp;&nbsp;Agregar a la fila</button>
+        <div class="mob-menu-sep"></div>
+        <button onclick="mobMenuTogglePlaylistSub(event)" class="mob-menu-flex-btn">
+            <span>📚&nbsp;&nbsp;Agregar a playlist</span>
+            <span id="mob-pl-arrow" class="mob-pl-arrow">▸</span>
+        </button>
+        <div id="mob-dots-playlist-sub"></div>
+        <div class="mob-menu-sep"></div>
+        <button onclick="closeMobDotsMenu()" class="mob-cancel-btn">Cancelar</button>
+    </div>
+
+    <!-- Contenido del modal -->
+    <div class="mob-modal-content">
+
+        <!-- Top bar: flecha abajo + título + 3 puntos -->
+        <div class="mob-modal-topbar">
+            <button onclick="closeMobPlayerModal()" class="mob-modal-close-btn">⌄</button>
+            <div class="mob-modal-topbar-center">
+                <div class="mob-modal-playing-label">Reproduciendo</div>
+            </div>
+            <button onclick="toggleMobDotsMenu(event)" class="mob-modal-dots-btn">⋯</button>
+        </div>
+
+        <!-- Portada grande + botones Letra / Fila -->
+        <div class="mob-cover-section">
+            <div class="mob-cover-media-wrap" id="mob-cover-media-wrap">
+                <img id="mob-player-cover" src="" alt="">
+                <video id="mob-player-cover-video" class="mob-cover-video-hidden" autoplay loop muted playsinline></video>
+            </div>
+            <!-- Botones que abren las vistas ya existentes -->
+            <div class="mob-action-row">
+                <button class="mob-action-pill" onclick="openMobLyricsView()">🎵 Letra</button>
+                <button class="mob-action-pill" onclick="openMobQueueView()">≣ Fila</button>
+            </div>
+        </div>
+
+        <!-- Info de la canción + corazón -->
+        <div class="mob-song-info-row">
+            <div class="mob-song-info-text">
+                <div id="mob-player-title">Selecciona una canción</div>
+                <div id="mob-player-artist"></div>
+            </div>
+            <button id="mob-heart-btn" onclick="toggleMobHeart()">♡</button>
+        </div>
+
+        <!-- Barra de progreso con touch -->
+        <div class="mob-progress-section">
+            <input type="range" id="mob-progress-range" min="0" max="100" value="0" oninput="mobSeek(this.value)">
+            <div class="mob-times-row">
+                <span id="mob-current-time" class="mob-time-label">0:00</span>
+                <span id="mob-duration" class="mob-time-label">0:00</span>
+            </div>
+        </div>
+
+        <!-- Controles de reproducción -->
+        <div class="mob-controls-section">
+            <button onclick="prevSong()" class="mob-ctrl-btn"><img src="original-82aaef539fec.png" alt="Anterior" class="icon-20"></button>
+            <button id="mob-play-btn" onclick="playPause(); updateMobPlayerBtn();" class="mob-play-btn"><img src="original-b766c1b498d1.png" alt="Play" class="icon-22"></button>
+            <button onclick="playNext()" class="mob-ctrl-btn"><img src="original-32abb8088b81.png" alt="Siguiente" class="icon-20"></button>
+        </div>
+
+        <!-- safe-area bottom spacer -->
+        <div class="mob-safe-area-spacer"></div>
+
+    </div>
+</div>
+
+<div id="videoModal">
+    
+    <!-- Barra de botones del video -->
+    <div class="video-topbar">
+        <!-- Botón cerrar solo en móvil -->
+        <button onclick="closeVideo()" title="Cerrar video" class="video-ctrl-icon-btn" id="mobCloseVideoBtn" class="hidden">✕</button>
+        <!-- Imagen en imagen -->
+        <button onclick="togglePiP()" title="Imagen en imagen" class="video-ctrl-icon-btn" id="pipBtn">⧉</button>
+        <!-- Pantalla completa -->
+        <button onclick="toggleFullscreenVideo()" title="Pantalla completa" class="video-ctrl-icon-btn" id="fsBtn">⛶</button>
+        <!-- Minimizar (ya no cierra, solo oculta la ventana) -->
+        <button id="minimizeBtn" onclick="minimizeVideo()" title="Minimizar" class="video-ctrl-icon-btn">－</button>
+    </div>
+
+    <!-- El video NO tiene controls ni audio — el player de abajo los maneja -->
+    <video id="videoPlayer" muted playsinline webkit-playsinline class="video-player-main"></video>
+
+    <!-- ── Controles de video para MÓVIL (siempre visibles debajo del video) ── -->
+    <div id="mob-video-controls">
+        <div id="mob-video-info">
+            <span id="mob-video-title"></span>
+            <span id="mob-video-artist"></span>
+        </div>
+        <div id="mob-video-progress-wrap">
+            <span id="mob-video-current" class="mob-video-time">0:00</span>
+            <input type="range" id="mob-video-range" min="0" max="100" value="0"
+                   oninput="mobVideoSeek(this.value)">
+            <span id="mob-video-duration" class="mob-video-time">0:00</span>
+        </div>
+        <div id="mob-video-btns">
+            <button onclick="prevSong()" class="mob-video-ctrl-btn">
+                <img src="original-82aaef539fec.png" alt="Anterior" class="icon-22">
+            </button>
+            <button id="mob-video-play-btn" onclick="playPause(); updateMobVideoPlayBtn();" class="mob-video-play-btn">
+                <img src="original-8855ebb60b11.png" alt="Pausa" class="icon-24">
+            </button>
+            <button onclick="playNext()" class="mob-video-ctrl-btn">
+                <img src="original-32abb8088b81.png" alt="Siguiente" class="icon-22">
+            </button>
+        </div>
+    </div>
+
+    <!-- Controles fullscreen (se muestran solo en pantalla completa, se ocultan con inactividad) -->
+    <div id="fsControls">
+        <!-- Barra de progreso -->
+        <div class="fs-progress-row">
+            <span id="fsCurrentTime" class="fs-time">0:00</span>
+            <progress id="fsProgress" value="0" max="100" onclick="fsScrub(event)"></progress>
+            <span id="fsDuration" class="fs-time">0:00</span>
+        </div>
+        <!-- Botones de control -->
+        <div class="fs-controls-row">
+            <!-- Título en fullscreen -->
+            <div id="fsTitleInfo">
+                <span id="fsTitleText"></span>
+                <span id="fsArtistText"></span>
+            </div>
+            <button onclick="prevSong()" class="fs-btn"><img src="original-82aaef539fec.png" alt="Anterior" class="icon-20"></button>
+            <button id="fsPlayBtn" onclick="playPause()"><img src="original-b766c1b498d1.png" alt="Play" class="icon-22"></button>
+            <button onclick="playNext()" class="fs-btn"><img src="original-32abb8088b81.png" alt="Siguiente" class="icon-20"></button>
+            <!-- Volumen -->
+            <div class="fs-volume-row">
+                <span class="fs-vol-icon">🔈</span>
+                <input type="range" id="fsVolume" min="0" max="1" step="0.01" value="0.5" oninput="document.getElementById('volume').value=this.value; document.getElementById('audio').volume=this.value;">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- =====================================================
+     MOBILE TAB BAR — Solo visible en pantallas ≤ 768px
+     ===================================================== -->
+<div id="mobile-tab-bar">
+    <button class="mob-tab active" id="tab-explorar" onclick="mobSwitchTab('explorar')">
+        <span class="tab-icon">♪</span>
+        <span>Inicio</span>
+    </button>
+    <button class="mob-tab" id="tab-buscar" onclick="mobSwitchTab('buscar')">
+        <span class="tab-icon">⌕</span>
+        <span>Buscar</span>
+    </button>
+    <button class="mob-tab" id="tab-coleccion" onclick="mobSwitchTab('coleccion')">
+        <span class="tab-icon">//</span>
+        <span>Colección</span>
+    </button>
+</div>
+
+<script src="mobile-original.js"></script>
+<section id="om-immersive" class="om-immersive" data-panel="cover" role="dialog" aria-modal="true" aria-label="Reproductor ampliado" hidden>
+  <header class="om-im-topbar"><button class="om-im-brand" onclick="omImmersiveTab('cover')" aria-label="Mostrar portada">OMUSIC<span>●</span></button><nav aria-label="Vistas del reproductor"><button data-im-tab="similar" onclick="omImmersiveTab('similar')" aria-pressed="false">Canciones similares</button><button data-im-tab="credits" onclick="omImmersiveTab('credits')" aria-pressed="false">Créditos</button><button data-im-tab="lyrics" onclick="omImmersiveTab('lyrics')" aria-pressed="false">Letras</button></nav><button id="om-im-fullscreen" onclick="omToggleMusicFullscreen()" title="Pantalla completa" aria-label="Pantalla completa"></button><button id="om-im-close" onclick="omCloseImmersive()" title="Cerrar reproductor ampliado" aria-label="Cerrar reproductor ampliado"></button></header>
+  <div class="om-im-stage"><div id="om-im-art" class="om-im-art"></div><div id="om-im-panel" class="om-im-panel" hidden><div id="om-im-lyrics" hidden></div><div id="om-im-similar" hidden></div><div id="om-im-credits" hidden></div></div></div>
+  <div id="om-im-player-slot"></div>
+</section>
+<script src="track-durations.js"></script>
+<script src="omusic-redesign.js"></script>
+<script src="omusic-video.js"></script>
+<script src="omusic-immersive.js"></script>
+<script src="omusic-social.js"></script>
+<script src="omusic-settings.js"></script>
+<script src="omusic-audio-settings.js"></script>
+<script src="omusic-party-core.js"></script>
+<script src="omusic-friends.js"></script>
+<script src="omusic-party-player.js"></script>
+<script src="omusic-cover-colors.js"></script>
+<script src="omusic-cover-palette.js"></script>
+<script src="omusic-mobile-player.js"></script>
+<script src="omusic-mobile-lyrics.js"></script>
+<script src="omusic-sharing.js"></script>
+<script src="omusic-mobile-video.js"></script>
+<script src="omusic-appearance.js"></script>
+<script src="omusic-motion.js"></script>
+<script src="omusic-desktop.js"></script>
+<script src="omusic-routing.js"></script>
+</body>
+
+
+</html>

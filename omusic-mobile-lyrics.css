@@ -1,0 +1,19 @@
+/* La animación de la referencia se limita a las letras del reproductor de celular. */
+@media(max-width:768px){
+  .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready{
+    --om-lyric-future:#ffffff78;--om-lyric-next:#ffffffa0;--om-lyric-past:#ffffff30;
+    padding-bottom:var(--om-lyric-tail,160px)!important;scroll-behavior:auto!important;overflow-anchor:none;touch-action:pan-y;
+  }
+  .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready.lyrics-changing{animation:none}
+  .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready .lrc-line{
+    color:var(--om-lyric-future)!important;scale:1;transform-origin:left center;
+    transition:color .4s ease,scale .55s cubic-bezier(.22,1,.36,1);
+  }
+  .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready .lrc-line.om-lyric-past{color:var(--om-lyric-past)!important}
+  .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready .lrc-line.om-lyric-next{color:var(--om-lyric-next)!important}
+  .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready .lrc-line.active{color:var(--om-mp-text)!important;scale:1.02}
+  html[data-theme="light"] .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready{--om-lyric-future:#24372b78;--om-lyric-next:#24372ba0;--om-lyric-past:#24372b38}
+}
+@media(max-width:768px) and (prefers-reduced-motion:reduce){
+  .omusic-app #om-mobile-player #lyrics-container.om-mobile-lyrics-ready .lrc-line{transition:none;scale:1!important}
+}

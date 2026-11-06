@@ -1,0 +1,50 @@
+/* Video de PC: fondo negro y controles neutros transparentes en todos sus modos. */
+.om-dv-top,.om-dv-stage,.om-dv-player-slot,.om-dv-quality{display:none}
+@media(min-width:769px){
+  html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer.player{background:rgba(23,23,23,.65)!important;backdrop-filter:blur(22px) saturate(0)!important;-webkit-backdrop-filter:blur(22px) saturate(0)!important;border-top:1px solid #ffffff12!important;box-shadow:none!important}
+  html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer :is(#title,#playBtn,.control-btn,.ctrl-mode-btn,.icon-btn,.om-player-tool,.om-player-more,#om-save-track){color:#fff!important}
+  html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer :is(#artist,.time){color:#ffffff9c!important}
+  html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer :is(.mode-active,.saved){background:#ffffff12!important;color:#fff!important}
+  html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer #progress,html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer #progress::-webkit-progress-bar{background:#ffffff30!important}
+  html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer #progress::-webkit-progress-value{background:#fff!important}
+  html[data-appearance-ready] .omusic-app.om-video-active #mainPlayer #progress::-moz-progress-bar{background:#fff!important}
+  .omusic-app.om-video-active #mainPlayer .om-dv-quality{display:inline-flex;align-items:center;justify-content:center;min-width:72px;padding:9px 16px;border:1px solid #ffffff1c;border-radius:24px;background:#ffffff07;color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
+  .omusic-app.om-video-active #mainPlayer #om-lyrics-btn{display:none!important}
+  .omusic-app.om-desktop-video-open #videoModal{position:fixed!important;inset:0!important;z-index:29000!important;max-width:none!important;max-height:none!important;width:100%!important;height:100dvh!important;padding:0!important;background:#000!important;flex-direction:column!important;border-radius:0!important;animation:none!important}
+  .om-desktop-video-open #videoModal :is(.video-topbar,#fsControls,#mob-video-controls,.om-vm-top,.om-vm-bottom,#om-vm-queue){display:none!important}
+  .om-desktop-video-open .om-dv-top{display:flex;align-items:center;justify-content:flex-end;gap:14px;position:absolute;inset:0 0 auto;height:62px;padding:0 24px;z-index:5;color:#fff}
+  .om-dv-top>nav{display:flex;align-items:center;gap:7px}
+  .omusic-app #videoModal .om-dv-top button{width:auto;height:33px;padding:0 10px;border:0;border-radius:20px;background:transparent;color:#ffffff99;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+  .omusic-app #videoModal .om-dv-top button.active{background:#fff;color:#000}
+  .omusic-app #videoModal .om-dv-top button:hover{background:#ffffff12;color:#fff}
+  .omusic-app #videoModal .om-dv-top button.active:hover{background:#fff;color:#000}
+  .om-desktop-video-open .om-dv-stage{display:grid;grid-template-columns:minmax(0,1fr);align-items:center;gap:38px;position:absolute;inset:62px 0 100px;padding:0 5.5%;min-height:0;overflow:hidden}
+  .om-desktop-video-open #videoModal:not([data-desktop-panel="cover"]) .om-dv-stage{grid-template-columns:minmax(0,1.25fr) minmax(260px,1fr)}
+  .om-dv-art{width:100%;height:100%;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;transform-origin:0 0}
+  .omusic-app.om-desktop-video-open #videoModal #videoPlayer{position:relative!important;inset:auto!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;border-radius:0!important;background:#000!important}
+  .om-dv-panel{min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;padding:16px 5px;color:#fff;scrollbar-width:thin;scrollbar-color:#ffffff36 transparent}
+  .om-dv-panel[hidden]{display:none!important}
+  .omusic-app #videoModal .om-dv-panel h2{font-size:15px;font-weight:700;margin:0 0 20px;color:#ffffffb0}
+  .om-dv-panel dl{font-size:14px;line-height:1.6}.om-dv-panel dt{color:#ffffff8c;margin-top:28px;font-weight:650}.om-dv-panel dd{margin:3px 0;color:#ffffffbd}
+  .omusic-app #videoModal .om-dv-panel .om-artist-link{font-size:14px;background:transparent;color:inherit;border:0;padding:0}
+  .om-dv-suggestions>div{display:flex;align-items:center;gap:8px;padding:7px 0}
+  .omusic-app #videoModal .om-dv-suggestions button{display:flex;align-items:center;border:0;background:transparent;color:#ffffff8a;padding:0;width:28px;height:35px;border-radius:4px}
+  .omusic-app #videoModal .om-dv-suggestions>div>button:first-child{width:auto;height:auto;flex:1;min-width:0;text-align:left;gap:12px;justify-content:flex-start}
+  .om-dv-suggestions img{width:82px;aspect-ratio:16/9;object-fit:cover;border-radius:3px}.om-dv-suggestions span{flex:1;min-width:0}.om-dv-suggestions strong,.om-dv-suggestions small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.om-dv-suggestions strong{font-size:13px;color:#ffffffb8}.om-dv-suggestions small{font-size:12px;margin-top:4px;color:#ffffff70}
+  .om-desktop-video-open .om-dv-player-slot{display:block;position:absolute;bottom:0;left:0;right:0;z-index:6;background:linear-gradient(transparent,#0009);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  html[data-appearance-ready] .omusic-app.om-desktop-video-open #videoModal #mainPlayer.player{display:flex!important;position:relative!important;inset:auto!important;width:100%!important;height:98px!important;background:transparent!important;border:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important}
+  .om-desktop-video-open #mainPlayer #cover-container{display:none!important}
+  .om-desktop-video-open #mainPlayer #playBtn{background:transparent!important;color:#fff!important}
+  .om-desktop-video-open #mainPlayer #playBtn:hover{background:#ffffff10!important}
+  .om-dv-top,.om-dv-player-slot{transition:opacity .22s,visibility 0s}
+  #videoModal.om-video-ui-hidden :is(.om-dv-top,.om-dv-player-slot){opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s,visibility 0s .22s}
+  .om-desktop-video-open :is(#queueBox,#optionsModal,#modalOverlay,#om-dialog-backdrop,#om-toast){z-index:50001!important}
+  .omusic-app #om-immersive .om-im-stage{overflow:visible}
+  /* En fullscreen los controles se superponen: no reservan márgenes ni columnas. */
+  .omusic-app.om-desktop-video-open #videoModal.om-video-fullscreen .om-dv-stage{inset:0!important;padding:0!important;gap:0!important;grid-template-columns:minmax(0,1fr)!important}
+  .omusic-app.om-desktop-video-open #videoModal.om-video-fullscreen .om-dv-art{width:100%;height:100%}
+  .omusic-app.om-desktop-video-open #videoModal.om-video-fullscreen :is(.om-dv-panel,.om-dv-top nav){display:none!important}
+}
+@media(prefers-reduced-motion:reduce){.om-dv-top,.om-dv-player-slot{transition:none!important}}
+
+@media(min-width:769px){.om-dv-top button[aria-label="Minimizar video"] svg{transform:rotate(90deg)}}

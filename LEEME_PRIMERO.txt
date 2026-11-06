@@ -1,0 +1,18 @@
+OMUSIC - APERTURA DEL ZIP REPARADO
+
+1. Descarga y extrae TODO el ZIP. No abras index.html desde dentro del archivo comprimido.
+2. Abre el index.html extraído con tu navegador.
+3. Para usar la copia local, pulsa Modo offline (invitado) si aparece el inicio de sesión.
+
+La navegación local ya no intenta cambiar la ruta de index.html. Puedes abrir artistas,
+álbumes, canciones y videos, y usar Volver y Avanzar. La música y las portadas remotas
+necesitan conexión a internet.
+
+Para iniciar sesión con Google o GitHub, compartir perfiles y usar funciones en línea,
+abre la página publicada o publica todos estos archivos con GitHub Pages.
+
+Página publicada:
+https://omusic-oliver-player.epictrail4101.chatgpt.site/
+
+Todos los archivos de esta entrega están en un solo nivel, sin carpetas.
+Para GitHub Pages, consulta README.md. No hace falta instalar paquetes ni compilar.
